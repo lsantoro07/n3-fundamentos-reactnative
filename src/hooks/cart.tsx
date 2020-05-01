@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 
 import AsyncStorage from '@react-native-community/async-storage';
+import { ProductTitle } from 'src/pages/Cart/styles';
 
 interface Product {
   id: string;
@@ -31,22 +32,87 @@ const CartProvider: React.FC = ({ children }) => {
   useEffect(() => {
     async function loadProducts(): Promise<void> {
       // TODO LOAD ITEMS FROM ASYNC STORAGE
+
+      const storageCart = await AsyncStorage.getItem('@GoMarketPlace:cart');
+
+      if (storageCart) {
+        setProducts(JSON.parse(storageCart));
+      }
     }
 
     loadProducts();
   }, []);
 
-  const addToCart = useCallback(async product => {
-    // TODO ADD A NEW ITEM TO THE CART
-  }, []);
+  const addToCart = useCallback(
+    async product => {
+      // TODO ADD A NEW ITEM TO THE CART
 
-  const increment = useCallback(async id => {
-    // TODO INCREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+      const findProduct = products.find(p => {
+        return p.id === product.id;
+      });
 
-  const decrement = useCallback(async id => {
-    // TODO DECREMENTS A PRODUCT QUANTITY IN THE CART
-  }, []);
+      if (findProduct) {
+        findProduct.quantity += 1;
+      } else {
+        setProducts([...products, { ...product, quantity: 1 }]);
+      }
+
+      await AsyncStorage.setItem(
+        '@GoMarketPlace:cart',
+        JSON.stringify(products),
+      );
+    },
+    [products],
+  );
+
+  const increment = useCallback(
+    async id => {
+      // TODO INCREMENTS A PRODUCT QUANTITY IN THE CART
+
+      const allProducts = [...products];
+
+      const productIndex = products.findIndex(p => {
+        return p.id === id;
+      });
+
+      if (productIndex > -1) {
+        allProducts[productIndex].quantity += 1;
+        setProducts(allProducts);
+      }
+
+      await AsyncStorage.setItem(
+        '@GoMarketPlace:cart',
+        JSON.stringify(products),
+      );
+    },
+    [products],
+  );
+
+  const decrement = useCallback(
+    async id => {
+      // TODO DECREMENTS A PRODUCT QUANTITY IN THE CART
+      const allProducts = [...products];
+
+      const productIndex = products.findIndex(p => {
+        return p.id === id;
+      });
+
+      if (productIndex > -1) {
+        if (allProducts[productIndex].quantity === 1) {
+          allProducts.splice(productIndex, 1);
+        } else {
+          allProducts[productIndex].quantity -= 1;
+        }
+        setProducts(allProducts);
+      }
+
+      await AsyncStorage.setItem(
+        '@GoMarketPlace:cart',
+        JSON.stringify(products),
+      );
+    },
+    [products],
+  );
 
   const value = React.useMemo(
     () => ({ addToCart, increment, decrement, products }),
