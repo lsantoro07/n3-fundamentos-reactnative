@@ -53,6 +53,7 @@ const CartProvider: React.FC = ({ children }) => {
 
       if (findProduct) {
         findProduct.quantity += 1;
+        setProducts([...products]);
       } else {
         setProducts([...products, { ...product, quantity: 1 }]);
       }
